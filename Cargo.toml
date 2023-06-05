@@ -1,0 +1,12 @@
+[package]
+name = "rust-embed-spa"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.6.18"
+mime_guess = "2.0.4"
+rust-embed = "6.6.1"
+tokio = { version = "1.28.2", features = ["full"] }
