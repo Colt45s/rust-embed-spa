@@ -1,12 +1,14 @@
 use anyhow::Result;
 use axum::{
     body::{boxed, Full},
-    http::{header, StatusCode, Uri},
-    response::{IntoResponse, Response},
-    routing::Router,
+    http::{header, Method, StatusCode, Uri},
+    response::{IntoResponse, Json, Response},
+    routing::{get, Router},
 };
 use rust_embed::RustEmbed;
+use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
+use tower_http::cors::{Any, CorsLayer};
 
 static INDEX_HTML: &str = "index.html";
 
@@ -16,13 +18,31 @@ struct Assets;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let app = Router::new().fallback(static_handler);
+    let app = Router::new()
+        .route("/hello", get(hello_handler))
+        .fallback(static_handler)
+        .layer(
+            CorsLayer::new()
+                .allow_methods(vec![Method::GET, Method::POST])
+                .allow_origin(Any),
+        );
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await?;
     Ok(())
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Message {
+    message: String,
+}
+
+async fn hello_handler() -> Json<Message> {
+    Json(Message {
+        message: "Hello, World!".to_string(),
+    })
 }
 
 async fn static_handler(uri: Uri) -> impl IntoResponse {
